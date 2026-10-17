@@ -1,4 +1,4 @@
-
+from database import get_products, add_product
 from fastapi import FastAPI
 from pydantic import BaseModel
 app = FastAPI()
@@ -8,22 +8,32 @@ app = FastAPI()
 def home():
     return {"message": "AI Retail Automation Agent is running"}
 @app.get("/products")
-def get_products():
+def list_products():
+    products = get_products()
+
     return {
         "products": [
-            {"id": 1, "name": "Milk", "price": 1.5},
-            {"id": 2, "name": "Bread", "price": 0.5},
-            {"id": 3, "name": "Rice", "price": 2.0}
+            {
+                "id": product[0],
+                "name": product[1],
+                "price": product[2],
+                "stock": product[3]
+            }
+            for product in products
         ]
     }
-class Product(BaseModel):
-    name: str
-    price: float
+from pydantic import Field
 
+class Product(BaseModel):
+    name: str = Field(min_length=1)
+    price: float = Field(gt=0)
+    stock: int = Field(ge=0)
 
 @app.post("/products")
-def add_product(product: Product):
+def create_product(product: Product):
+    add_product(product.name, product.price, product.stock)
+
     return {
-        "message": "Product received successfully",
+        "message": "Product saved successfully",
         "product": product
     }
