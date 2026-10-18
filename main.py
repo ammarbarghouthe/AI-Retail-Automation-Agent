@@ -1,7 +1,16 @@
+
+
+import os
+from dotenv import load_dotenv
+from google import genai
+from google.genai import types
+from database import get_low_stock_products
+
 from database import get_products, add_product
 from fastapi import FastAPI
 from pydantic import BaseModel
 app = FastAPI()
+
 
 
 @app.get("/")
@@ -37,3 +46,28 @@ def create_product(product: Product):
         "message": "Product saved successfully",
         "product": product
     }
+
+# Load Gemini API configuration
+load_dotenv(override=True)
+
+gemini_client = genai.Client(
+    api_key=os.getenv("GEMINI_API_KEY")
+)
+
+
+class ChatRequest(BaseModel):
+    message: str = Field(min_length=1)
+
+
+@app.post("/ai/chat")
+def ai_chat(request: ChatRequest):
+    chat = gemini_client.chats.create(
+        model="gemini-3.8-flash",
+        config=types.GenerateContentConfig(
+            tools=[get_low_stock_products]
+        )
+    )
+
+    response = chat.send_message(request.message)
+
+    return {"response": response.text}

@@ -44,6 +44,33 @@ def get_products():
     connection.close()
 
     return products
+
+
+def get_low_stock_products(threshold: int = 20) -> list[dict]:
+    print(f"TOOL EXECUTED: get_low_stock_products(threshold={threshold})", flush=True)
+
+    conn = sqlite3.connect("retail.db")
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        "SELECT id, name, price, stock FROM products WHERE stock < ?",
+        (threshold,)
+    )
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    return [
+        {
+            "id": row[0],
+            "name": row[1],
+            "price": row[2],
+            "stock": row[3]
+        }
+        for row in rows
+    ]
+
 if __name__ == "__main__":
     create_database()
     print(get_products())
