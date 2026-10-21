@@ -1,0 +1,77 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Retail Operations Dashboard</title>
+    <link rel="stylesheet" href="/frontend/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <h2>RetailAI</h2>
+            <p>Operations Dashboard</p>
+
+            <nav>
+                <a href="#overview">Overview</a>
+                <a href="#products">Products</a>
+                <a href="#assistant">AI Assistant</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header>
+                <h1>Retail Operations Dashboard</h1>
+                <p>Sales insights powered by AI</p>
+            </header>
+
+            <section id="overview">
+                <h2>Sales Overview</h2>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Revenue</h3>
+                        <p id="revenue">Loading...</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Total Orders</h3>
+                        <p id="orders">Loading...</p>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Units Sold</h3>
+                        <p id="units">Loading...</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="products">
+                <h2>Top Selling Products</h2>
+                <div id="top-products">Loading...</div>
+            </section>
+
+            <section id="assistant">
+                <h2>AI Retail Assistant</h2>
+
+                <div class="chat-box" id="chat-messages">
+                    <p>Ask me about sales, products, customers, or inventory.</p>
+                </div>
+
+                <form id="chat-form">
+                    <input
+                        type="text"
+                        id="chat-input"
+                        placeholder="Ask a retail question..."
+                        required
+                    >
+                    <button type="submit">Send</button>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <script src="/frontend/script.js"></script>
+</body>
+</html>
