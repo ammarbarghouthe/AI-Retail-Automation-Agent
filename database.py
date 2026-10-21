@@ -14,10 +14,30 @@ def create_database():
         )
     """)
 
+    new_columns = {
+        "category": "TEXT",
+        "barcode": "TEXT",
+        "cost_price": "REAL",
+        "reorder_level": "INTEGER",
+        "supplier": "TEXT"
+    }
+
+    cursor.execute("PRAGMA table_info(products)")
+    existing_columns = {
+        row[1] for row in cursor.fetchall()
+    }
+
+    for column, data_type in new_columns.items():
+        if column not in existing_columns:
+            cursor.execute(
+                f"ALTER TABLE products ADD COLUMN {column} {data_type}"
+            )
+            print(f"Added column: {column}")
+
     connection.commit()
     connection.close()
 
-    print("Database and products table created successfully!")
+    print("Database upgraded successfully!")
 
 
 def add_product(name, price, stock):
@@ -96,3 +116,27 @@ def get_inventory_summary() -> dict:
         "total_stock_units": row[1],
         "total_inventory_value": round(row[2], 2)
     }
+
+def create_retail_sales_table():
+    """Create a table for historical retail transactions."""
+    connection = sqlite3.connect("retail.db")
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS retail_sales (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            invoice TEXT,
+            stock_code TEXT,
+            description TEXT,
+            quantity INTEGER,
+            invoice_date TEXT,
+            unit_price REAL,
+            customer_id TEXT,
+            country TEXT
+        )
+    """)
+
+    connection.commit()
+    connection.close()
+
+    print("Retail sales table created successfully!")
