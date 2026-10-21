@@ -1,10 +1,12 @@
 
-
+from fastapi import HTTPException
+from google.genai import errors
+from database import get_inventory_summary
 import os
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-from database import get_low_stock_products
+from database import get_low_stock_products, get_inventory_summary
 
 from database import get_products, add_product
 from fastapi import FastAPI
@@ -59,15 +61,37 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1)
 
 
+
 @app.post("/ai/chat")
 def ai_chat(request: ChatRequest):
-    chat = gemini_client.chats.create(
-        model="gemini-3.8-flash",
-        config=types.GenerateContentConfig(
-            tools=[get_low_stock_products]
+    try:
+        chat = gemini_client.chats.create(
+            model="gemini-3.8-flash",
+            config=types.GenerateContentConfig(
+                tools=[
+                    get_low_stock_products,
+                    get_inventory_summary
+                ]
+            )
         )
-    )
 
-    response = chat.send_message(request.message)
+        response = chat.send_message(request.message)
 
-    return {"response": response.text}
+        return {"response": response.text}
+
+    except errors.ServerError as e:
+        if e.code == 503:
+            raise HTTPException(
+                status_code=503,
+                detail="Gemini is temporarily busy. Please try again later."
+            )
+
+        raise HTTPException(
+            status_code=502,
+            detail="Gemini service error."
+        )
+
+
+@app.get("/inventory/summary")
+def inventory_summary():
+    return get_inventory_summary()

@@ -74,3 +74,25 @@ def get_low_stock_products(threshold: int = 20) -> list[dict]:
 if __name__ == "__main__":
     create_database()
     print(get_products())
+    
+def get_inventory_summary() -> dict:
+    """Get total product records, stock units, and inventory value."""
+    conn = sqlite3.connect("retail.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            COUNT(*),
+            COALESCE(SUM(stock), 0),
+            COALESCE(SUM(price * stock), 0)
+        FROM products
+    """)
+
+    row = cursor.fetchone()
+    conn.close()
+
+    return {
+        "total_products": row[0],
+        "total_stock_units": row[1],
+        "total_inventory_value": round(row[2], 2)
+    }
