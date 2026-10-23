@@ -4,74 +4,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Retail Operations Dashboard</title>
+    <title>RetailAI | Analytics Dashboard</title>
     <link rel="stylesheet" href="/frontend/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" defer></script>
+    <script src="/frontend/script.js" defer></script>
 </head>
 <body>
     <div class="dashboard">
         <aside class="sidebar">
-            <h2>RetailAI</h2>
-            <p>Operations Dashboard</p>
+            <div class="brand">
+                <h2>Retail<span>AI</span></h2>
+                <p>Operations Intelligence</p>
+            </div>
 
             <nav>
                 <a href="#overview">Overview</a>
+                <a href="#trends">Sales Trends</a>
                 <a href="#products">Products</a>
+                <a href="#customers">Customers</a>
                 <a href="#assistant">AI Assistant</a>
             </nav>
+
+            <div class="sidebar-footer">
+                Historical Retail Analytics
+                <small>Dataset: 2009–2011</small>
+            </div>
         </aside>
 
         <main class="main-content">
-            <header>
-                <h1>Retail Operations Dashboard</h1>
-                <p>Sales insights powered by AI</p>
+            <header class="page-header">
+                <div>
+                    <span class="eyebrow">BUSINESS INTELLIGENCE</span>
+                    <h1>Retail Analytics Dashboard</h1>
+                    <p>Explore historical sales and ask AI-powered questions.</p>
+                </div>
+                <span class="status-pill">Historical Data</span>
             </header>
 
             <section id="overview">
-                <h2>Sales Overview</h2>
+                <div class="section-heading">
+                    <h2>Sales Overview</h2>
+                    <button id="reset-filter" type="button" class="secondary-button">
+                        Show All Data
+                    </button>
+                </div>
+
+                <form id="date-filter" class="filter-bar">
+                    <label>
+                        From
+                        <input type="date" id="start-date"
+                               value="2010-01-01" required>
+                    </label>
+                    <label>
+                        To
+                        <input type="date" id="end-date"
+                               value="2010-12-31" required>
+                    </label>
+                    <button type="submit">Apply Filter</button>
+                </form>
+
+                <p id="period-label" class="helper-text">
+                    Showing all historical transactions
+                </p>
 
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <h3>Total Revenue</h3>
-                        <p id="revenue">Loading...</p>
+                        <span>Total Revenue</span>
+                        <strong id="revenue">Loading...</strong>
+                        <small>Gross sales after cleaning</small>
                     </div>
-
                     <div class="stat-card">
-                        <h3>Total Orders</h3>
-                        <p id="orders">Loading...</p>
+                        <span>Total Orders</span>
+                        <strong id="orders">Loading...</strong>
+                        <small>Distinct invoices</small>
                     </div>
-
                     <div class="stat-card">
-                        <h3>Units Sold</h3>
-                        <p id="units">Loading...</p>
+                        <span>Units Sold</span>
+                        <strong id="units">Loading...</strong>
+                        <small>Total product quantity</small>
                     </div>
                 </div>
             </section>
 
-            <section id="products">
-                <h2>Top Selling Products</h2>
-                <div id="top-products">Loading...</div>
+            <section id="trends">
+                <div class="section-heading">
+                    <h2>Monthly Revenue Trends</h2>
+                </div>
+                <div class="panel chart-panel">
+                    <div class="chart-container">
+                        <canvas id="monthly-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <div class="analytics-grid">
+                <section id="products">
+                    <h2>Top 10 Products</h2>
+                    <div class="panel chart-panel">
+                        <div class="chart-container">
+                            <canvas id="products-chart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="customers">
+                    <h2>Top 10 Customers</h2>
+                    <div class="panel chart-panel">
+                        <div class="chart-container">
+                            <canvas id="customers-chart"></canvas>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <section>
+                <h2>Best-Selling Products</h2>
+                <div id="top-products" class="panel table-panel">
+                    Loading...
+                </div>
             </section>
 
             <section id="assistant">
-                <h2>AI Retail Assistant</h2>
-
-                <div class="chat-box" id="chat-messages">
-                    <p>Ask me about sales, products, customers, or inventory.</p>
+                <div class="section-heading">
+                    <div>
+                        <h2>AI Retail Assistant</h2>
+                        <p class="helper-text">
+                            Ask questions about sales, products, customers,
+                            revenue, or inventory.
+                        </p>
+                    </div>
+                    <span class="ai-pill">Gemini AI</span>
                 </div>
 
-                <form id="chat-form">
-                    <input
-                        type="text"
-                        id="chat-input"
-                        placeholder="Ask a retail question..."
-                        required
-                    >
-                    <button type="submit">Send</button>
-                </form>
+                <div class="panel chat-panel">
+                    <div class="chat-box" id="chat-messages"
+                         aria-live="polite">
+                        <div class="chat-message ai">
+                            Hello! I'm your AI Retail Assistant.
+                            How can I help you analyze your business?
+                        </div>
+                    </div>
+
+                    <form id="chat-form">
+                        <input
+                            type="text"
+                            id="chat-input"
+                            placeholder="Ask about your retail data..."
+                            autocomplete="off"
+                            required
+                        >
+                        <button type="submit">Send</button>
+                    </form>
+                </div>
             </section>
+
+            <p id="dashboard-error" class="error-message"
+               role="alert"></p>
         </main>
     </div>
-
-    <script src="/frontend/script.js"></script>
 </body>
 </html>

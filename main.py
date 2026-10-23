@@ -1,4 +1,7 @@
 from database import (
+    get_low_stock_products,
+    get_inventory_summary,
+    search_product_sales,
     get_top_selling_products,
     get_revenue_by_period,
     get_monthly_sales_trends,
@@ -7,7 +10,9 @@ from database import (
     get_order_statistics,
     get_slow_moving_products,
     compare_product_sales,
+    get_dashboard_analytics,
 )
+import time
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from database import search_product_sales
@@ -87,7 +92,7 @@ class ChatRequest(BaseModel):
 def ai_chat(request: ChatRequest):
     try:
         chat = gemini_client.chats.create(
-            model="gemini-3.8-flash",
+            model="gemini-3.5-flash-lite",
             config=types.GenerateContentConfig(
   system_instruction="""
     You are an AI Retail Operations Assistant.
@@ -131,15 +136,27 @@ tools=[
     get_order_statistics,
     get_slow_moving_products,
     compare_product_sales,
+    get_dashboard_analytics,
 ]
 
 )
             )
+      
         
+        start_time = time.perf_counter()
 
-        response = chat.send_message(request.message)
+        try:
+            response = chat.send_message(request.message)
+        finally:
+            elapsed = time.perf_counter() - start_time
+            print(
+                f"Gemini request took {elapsed:.2f} seconds",
+                flush=True
+            )
 
         return {"response": response.text}
+    
+    
 
     except errors.ServerError as e:
         if e.code == 503:
@@ -165,3 +182,50 @@ def analytics_summary():
 @app.get("/analytics/top-products")
 def analytics_top_products(limit: int = 10):
     return get_top_selling_products(limit=limit)
+
+@app.get("/analytics/monthly-sales")
+def analytics_monthly_sales():
+    return get_monthly_sales_trends()
+
+
+@app.get("/analytics/top-customers")
+def analytics_top_customers(limit: int = 10):
+    return get_top_customers(limit=limit)
+
+
+@app.get("/analytics/revenue-period")
+def analytics_revenue_period(start_date: str, end_date: str):
+    from datetime import date
+
+    try:
+        start = date.fromisoformat(start_date)
+        end = date.fromisoformat(end_date)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail="Dates must use YYYY-MM-DD format."
+        )
+
+    if start > end:
+        raise HTTPException(
+            status_code=400,
+            detail="Start date cannot be after end date."
+        )
+
+    return get_revenue_by_period(start_date, end_date)
+
+
+@app.get("/analytics/dashboard")
+def analytics_dashboard(start_date: str | None = None, end_date: str | None = None):
+    from datetime import date
+    if (start_date is None) != (end_date is None):
+        raise HTTPException(status_code=400, detail="Provide both start_date and end_date.")
+    if start_date is not None:
+        try:
+            start = date.fromisoformat(start_date)
+            end = date.fromisoformat(end_date)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Dates must use YYYY-MM-DD format.")
+        if start > end:
+            raise HTTPException(status_code=400, detail="Start date cannot be after end date.")
+    return get_dashboard_analytics(start_date, end_date)

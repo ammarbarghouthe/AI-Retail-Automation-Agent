@@ -341,3 +341,52 @@ def compare_product_sales(
             })
 
     return results
+
+
+from functools import lru_cache
+
+@lru_cache(maxsize=32)
+def get_dashboard_analytics(start_date: str | None = None, end_date: str | None = None) -> dict:
+    """Consistent dashboard metrics using the same optional inclusive date range."""
+    if (start_date is None) != (end_date is None):
+        raise ValueError("Provide both dates or neither")
+    condition = "WHERE invoice_date >= ? AND invoice_date < date(?, '+1 day')" if start_date else ""
+    params = (start_date, end_date) if start_date else ()
+    from contextlib import closing
+    with closing(sqlite3.connect("retail.db")) as conn:
+        conn.execute("PRAGMA temp_store = MEMORY")
+        summary = conn.execute(f"""
+            SELECT COUNT(DISTINCT invoice), COUNT(*),
+                   COALESCE(SUM(quantity),0),
+                   ROUND(COALESCE(SUM(quantity * unit_price),0),2)
+            FROM retail_sales {condition}
+        """, params).fetchone()
+        months = conn.execute(f"""
+            SELECT SUBSTR(invoice_date,1,7), SUM(quantity),
+                   ROUND(SUM(quantity * unit_price),2)
+            FROM retail_sales {condition}
+            GROUP BY 1 ORDER BY 1
+        """, params).fetchall()
+        products = conn.execute(f"""
+            SELECT stock_code, description, SUM(quantity) AS units,
+                   ROUND(SUM(quantity * unit_price),2)
+            FROM retail_sales {condition}
+            GROUP BY stock_code, description ORDER BY units DESC LIMIT 10
+        """, params).fetchall()
+        customers_where = f"{condition} AND customer_id IS NOT NULL" if condition else "WHERE customer_id IS NOT NULL"
+        customers = conn.execute(f"""
+            SELECT customer_id, COUNT(DISTINCT invoice),
+                   ROUND(SUM(quantity * unit_price),2) AS spend
+            FROM retail_sales {customers_where}
+            GROUP BY customer_id ORDER BY spend DESC LIMIT 10
+        """, params).fetchall()
+    return {
+        "summary": {"total_orders": summary[0], "sales_lines": summary[1],
+                    "units_sold": summary[2], "revenue_gbp": summary[3]},
+        "monthly_sales": [{"month": r[0], "units_sold": r[1], "revenue_gbp": r[2]} for r in months],
+        "top_products": [{"stock_code": r[0], "product": r[1], "units_sold": r[2],
+                          "revenue_gbp": r[3]} for r in products],
+        "top_customers": [{"customer_id": r[0], "orders": r[1],
+                           "total_spent_gbp": r[2]} for r in customers],
+        "start_date": start_date, "end_date": end_date,
+    }
