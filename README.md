@@ -51,3 +51,6 @@ The database tests use a temporary synthetic SQLite database and do not need the
 - Dashboard caching is process-local and assumes historical data is unchanged while the server runs. Restart the server if historical sales data is re-imported.
 - The dashboard uses Chart.js via CDN, so charts need internet access.
 - This is a portfolio prototype, not a production POS, live inventory system or authenticated multi-user platform.
+## Dashboard Preview
+
+![RetailAI Dashboard](screenshots/dashboard.png)
